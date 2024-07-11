@@ -1,4 +1,6 @@
--- Task 2: Part 1: Q1
+-- Hospital Database: Create Database from scratch as per the project requirements and query the Database
+
+-- Part 1
 
 -- Create Hospital Database
 
@@ -124,8 +126,7 @@ VALUES
 
 -- Insert data into Patients Table
 
-INSERT INTO Patients(AddressID, PatientFullName, DateOfBirth , Insurance, 
-									UserName, Password, EmailAddress , TelephoneNumber, DateLeft)
+INSERT INTO Patients(AddressID, PatientFullName, DateOfBirth , Insurance, UserName, Password, EmailAddress , TelephoneNumber, DateLeft)
 VALUES
 			(1, 'John Smith', '1985-04-15', 'Aviva', 'john24', 'A6543c2', 'j.smith@gmail.com', '0207 231 4681', NULL),
 			(2, 'Aizal Noah', '2001-07-21', 'BUPA', 'aizal54', 'C8932e5', 'a.noah@gmail.com', '0121 123 5832', NULL), 
@@ -175,8 +176,7 @@ VALUES
 
 -- Insert data into Appointments Table
 
-INSERT INTO Appointments(PatientID, DoctorID, DepartmentID, AppointmentDate, 
-											AppointmentTime, Status, Review)
+INSERT INTO Appointments(PatientID, DoctorID, DepartmentID, AppointmentDate, AppointmentTime, Status, Review)
 VALUES
 			(6, 2, 3, '2024-01-15', '13:10:00', 'Completed', 'Professional, self-assured, attentive to my questions.'), 
 			(7, 1, 6, '2024-01-21', '11:20:00', 'Completed', 'Among the greatest doctors is him. He is thorough and friendly.'),
@@ -192,8 +192,7 @@ VALUES
 
 -- Insert data into MedicalRecords Table
 
-INSERT INTO MedicalRecords(PatientID, DoctorID, PrescriptionDate,
-													Diagnosis, Medicines, Allergies)
+INSERT INTO MedicalRecords(PatientID, DoctorID, PrescriptionDate, Diagnosis, Medicines, Allergies)
 VALUES
 			(6, 2, '2024-01-15', 'Epilepsy', 'Clobazam, Pregabalin', 'Peanuts'),
 			(7, 1, '2024-01-21', 'Cancer', 'Cladribine, Floxuridine', 'Milk'),
@@ -215,9 +214,9 @@ SELECT * FROM DoctorsSpecialities
 SELECT * FROM Appointments
 SELECT * FROM MedicalRecords
 
--- Task 2: Part 2
+-- Part 2
 
--- Q2: Add the constraint to check that the Appointment Date is not in the past
+-- 1: Add the constraint to check that the Appointment Date is not in the past
 
 ALTER TABLE Appointments
 ADD CONSTRAINT AppointmentDate_NotInPast
@@ -227,7 +226,7 @@ CHECK (
     (Status = 'Completed' AND AppointmentDate <= CAST(GETDATE() AS DATE))
 );
 
--- Q3: List of all patients who are older than 40 and have Cancer in Diagnosis
+-- 2: List of all patients who are older than 40 and have Cancer in Diagnosis
 
 SELECT p.* , mr.Diagnosis
 FROM Patients p
@@ -237,8 +236,7 @@ WHERE DATEDIFF(YEAR, p.DateOfBirth, GETDATE()) > 40
 AND mr.Diagnosis LIKE '%Cancer%';
 GO
 
--- Q4(a): Create User-Defined Function to find Medicine Name 
--- and sorted the result with most recent medicine PrescribtionDate first.
+-- 3: Create User-Defined Function to find Medicine Name and sorted the result with most recent medicine PrescribtionDate first.
 
 CREATE FUNCTION SearchMedicines
 (
@@ -260,8 +258,7 @@ SELECT * FROM SearchMedicines('Cladribine')
 ORDER BY PrescriptionDate DESC
 GO
 
--- Q4(b): Create User-Defined Function to retreive Full list of Diagnosis and Allergies
--- for a specific patient who has an appointment today
+-- 4: Create User-Defined Function to retreive Full list of Diagnosis and Allergies for a specific patient who has an appointment today
 
 CREATE FUNCTION GetDiagnosisAndAllergies
 (
@@ -285,7 +282,7 @@ GO
 SELECT * FROM dbo.GetDiagnosisAndAllergies(7);
 GO
 
--- Q4(c): Create Stored Procedure to update the details for an existing doctor
+-- 5: Create Stored Procedure to update the details for an existing doctor
 
 CREATE PROCEDURE UpdateDoctorDetails
 	@DoctorID INT,
@@ -318,7 +315,7 @@ SELECT * FROM Doctors
 WHERE DoctorID = 3
 GO
 
--- Q4(d): Create Stored Procedure to delete the Appointments whose Status is already Completed
+-- 6: Create Stored Procedure to delete the Appointments whose Status is already Completed
 
 -- First: Create Archived Table to Move Deleted Records
 
@@ -341,14 +338,13 @@ AS
 BEGIN
 
 	-- Move Completed Appointments to Archived Table
-    INSERT INTO ArchivedAppointments (AppointmentID, PatientID, DoctorID, DepartmentID, 
-																AppointmentDate, AppointmentTime, Status, Review)
-    SELECT AppointmentID, PatientID, DoctorID, DepartmentID, AppointmentDate,
-					AppointmentTime, Status, Review
+    INSERT INTO ArchivedAppointments (AppointmentID, PatientID, DoctorID, DepartmentID, AppointmentDate, AppointmentTime, Status, Review)
+    SELECT AppointmentID, PatientID, DoctorID, DepartmentID, AppointmentDate, AppointmentTime, Status, Review
     FROM Appointments
     WHERE Status = 'Completed';
 
 	-- Delete Completed Appointments from Appointments Table
+
     DELETE FROM Appointments
     WHERE Status = 'Completed';
 END;
@@ -365,8 +361,7 @@ SELECT * FROM ArchivedAppointments
 SELECT * FROM Appointments
 GO
 
--- Q5: Create a View to see all appointments for all doctors including 
--- appointment date, time, department, doctor’s specialty and review
+-- 7: Create a View to see all appointments for all doctors including appointment date, time, department, doctors specialty and review
  
 CREATE VIEW AppointmentDetails 
 AS
@@ -399,7 +394,7 @@ SELECT * FROM AppointmentDetails
 ORDER BY AppointmentDate DESC;
 GO
 
--- Q6: Create a Trigger to change Appointment Status as Available when it is Cancelled
+-- 8: Create a Trigger to change Appointment Status as Available when it is Cancelled
 
 CREATE TRIGGER ChangeStatus
 ON Appointments
@@ -412,7 +407,7 @@ BEGIN
 END;
 GO
 
--- Q7: Number of Completed Appointments with the specialty of doctors as ‘Gastroenterologists’
+-- 9: Number of Completed Appointments with the specialty of doctors as Gastroenterologists
 
 SELECT COUNT(*) AS NumCompletedAppointments
 FROM ArchivedAppointments a
@@ -431,16 +426,16 @@ GO
 
 CREATE PROCEDURE RegisterNewPatient
 								@PatientFullName	NVARCHAR(50),
-								@DateOfBirth			DATE,
-								@Insurance				NVARCHAR(50),
-								@UserName				NVARCHAR(50),
-								@Password				NVARCHAR(50),
-								@EmailAddress		NVARCHAR(50)		= NULL,
-								@TelephoneNumber NVARCHAR(20)		= NULL,
-								@DateLeft				DATE						= NULL,
-								@Address					NVARCHAR(50),
-								@PostCode				NVARCHAR(10),
-								@City						NVARCHAR(50)
+								@DateOfBirth		DATE,
+								@Insurance		NVARCHAR(50),
+								@UserName		NVARCHAR(50),
+								@Password		NVARCHAR(50),
+								@EmailAddress		NVARCHAR(50) = NULL,
+								@TelephoneNumber 	NVARCHAR(20) = NULL,
+								@DateLeft		DATE = NULL,
+								@Address		NVARCHAR(50),
+								@PostCode		NVARCHAR(10),
+								@City			NVARCHAR(50)
 AS
 BEGIN
 		DECLARE @AddressID INT;
@@ -457,27 +452,24 @@ BEGIN
 		SET @HashedPassword = HASHBYTES('SHA2_256', @Password);
 
 		-- Insert the New Patient Values into the Patients Table
-		INSERT INTO Patients(
-								PatientFullName, DateOfBirth, Insurance, UserName, Password, 
-								EmailAddress, TelephoneNumber, DateLeft, AddressID)
-		VALUES (@PatientFullName, @DateOfBirth, @Insurance, @UserName, @Password, 
-								@EmailAddress, @TelephoneNumber, @DateLeft, @AddressID)
+		INSERT INTO Patients(PatientFullName, DateOfBirth, Insurance, UserName, Password, EmailAddress, TelephoneNumber, DateLeft, AddressID)
+		VALUES (@PatientFullName, @DateOfBirth, @Insurance, @UserName, @Password, @EmailAddress, @TelephoneNumber, @DateLeft, @AddressID)
 END;
 
 -- Execute the Stored Proedure
 
 EXEC RegisterNewPatient
-								@PatientFullName		= 'Hina Sohail',	
-								@DateOfBirth				= '1981-07-23',
-								@Insurance					= 'Saga',	
-								@UserName					= 'hina26',
-								@Password					= 'C9649e2',
-								@EmailAddress			= 'h.altaf@gmail.com',
-								@TelephoneNumber		= '0121 125 9828',
-								@DateLeft					= NULL,
-								@Address						= '27 Salford Quays',				
-								@PostCode					= 'M17 3EQ',
-								@City							=	'Salford'
+								@PatientFullName 	= 'Hina Sohail',	
+								@DateOfBirth 		= '1981-07-23',
+								@Insurance		= 'Saga',	
+								@UserName		= 'hina26',
+								@Password		= 'C9649e2',
+								@EmailAddress		= 'h.altaf@gmail.com',
+								@TelephoneNumber	= '0121 125 9828',
+								@DateLeft		= NULL,
+								@Address		= '27 Salford Quays',				
+								@PostCode		= 'M17 3EQ',
+								@City			= 'Salford'
 
 GO
 
@@ -490,29 +482,29 @@ GO
 --Additional 2:  Create Stored Procedure to Update Existing Patient 
 
 CREATE PROCEDURE UpdatePatientRecord
-								@PatientID				INT,
+								@PatientID		INT,
 								@PatientFullName	NVARCHAR(50),
-								@DateOfBirth			DATE,
-								@Insurance				NVARCHAR(50),
-								@UserName				NVARCHAR(50),
-								@Password				NVARCHAR(50),
-								@EmailAddress		NVARCHAR(50)		= NULL,
-								@TelephoneNumber NVARCHAR(20)		= NULL,
-								@DateLeft				DATE						= NULL,
-								@Msg						NVARCHAR(MAX)	= NULL OUTPUT
+								@DateOfBirth		DATE,
+								@Insurance		NVARCHAR(50),
+								@UserName		NVARCHAR(50),
+								@Password		NVARCHAR(50),
+								@EmailAddress		NVARCHAR(50) = NULL,
+								@TelephoneNumber 	NVARCHAR(20) = NULL,
+								@DateLeft		DATE = NULL,
+								@Msg			NVARCHAR(MAX) = NULL OUTPUT
 AS
 BEGIN TRY
 			SET NOCOUNT ON
 				UPDATE Patients
 				SET
-					PatientFullName			= @PatientFullName,
-					DateOfBirth					= @DateOfBirth,
-					Insurance						= @Insurance,
-					UserName						= @UserName,
-					Password						= @Password,
-					EmailAddress				= @EmailAddress,
-					TelephoneNumber			= @TelephoneNumber,
-					DateLeft						= @DateLeft
+					PatientFullName	= @PatientFullName,
+					DateOfBirth	= @DateOfBirth,
+					Insurance	= @Insurance,
+					UserName	= @UserName,
+					Password	= @Password,
+					EmailAddress	= @EmailAddress,
+					TelephoneNumber	= @TelephoneNumber,
+					DateLeft	= @DateLeft
 
 				WHERE PatientID = @PatientID
 				SET @Msg = 'Member Details Updated Successfully!';
@@ -526,15 +518,15 @@ GO
 -- Execute the Stored Proedure
 
 EXEC UpdatePatientRecord
-								@PatientFullName		= 'Hina Sohail',	
-								@DateOfBirth				= '1985-07-23',
-								@Insurance					= 'Vitality Health',	
-								@UserName					= 'hina26',
-								@Password					= 'C9649e2',
-								@EmailAddress			= 'a.altaf@gmail.com',
-								@TelephoneNumber		= '0121 124 9728',
-								@DateLeft					= NULL,
-								@PatientID					= 12
+								@PatientFullName	= 'Hina Sohail',	
+								@DateOfBirth		= '1985-07-23',
+								@Insurance		= 'Vitality Health',	
+								@UserName		= 'hina26',
+								@Password		= 'C9649e2',
+								@EmailAddress		= 'a.altaf@gmail.com',
+								@TelephoneNumber	= '0121 124 9728',
+								@DateLeft		= NULL,
+								@PatientID		= 12
 
 GO
 
@@ -574,8 +566,7 @@ SELECT RecordID, Diagnosis, Medicines FROM MedicalRecords
 WHERE RecordID = 9
 GO
 
--- Additional 4: Create View to see Medical Records of a Patient including Past Appointments, 
--- Diagnosis, Medicines and Allergies
+-- Additional 4: Create View to see Medical Records of a Patient including Past Appointments, Diagnosis, Medicines and Allergies
 
 CREATE VIEW PatientMedicalRecords 
 AS
@@ -602,8 +593,7 @@ SELECT * FROM PatientMedicalRecords
 WHERE PatientID = 6;
 GO
 
--- Additional 5: Create Stored Procedure to update Appintment
---Status to Completed after seeing the Doctor
+-- Additional 5: Create Stored Procedure to update Appointment Status to Completed after seeing the Doctor
 
 CREATE PROCEDURE UpdateAppointmentStatus
     @AppointmentID INT
@@ -667,8 +657,8 @@ AS
 BEGIN
     DECLARE @Result NVARCHAR(50)
 	IF EXISTS(
-						SELECT * FROM Patients
-						WHERE UserName = @UserName AND Password = @Password)
+		SELECT * FROM Patients
+		WHERE UserName = @UserName AND Password = @Password)
 		SET @Result = 'User Login Successfully!';
 	ELSE
 		SET @Result = 'Incorrect Username od Password!';
